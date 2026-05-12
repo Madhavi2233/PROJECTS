@@ -1,55 +1,26 @@
+from flask import Flask, render_template, request
 import qrcode
 import os
-import tkinter as tk
-from tkinter import messagebox
-from PIL import Image, ImageTk
 
-# Create folder automatically
-if not os.path.exists("generated_qr"):
-    os.makedirs("generated_qr")
+app = Flask(__name__)
 
-def generate_qr():
-    data = entry.get()
+if not os.path.exists("static"):
+    os.makedirs("static")
 
-    if data == "":
-        messagebox.showerror("Error", "Please enter text or URL")
-        return
+@app.route("/", methods=["GET", "POST"])
+def home():
+    qr_path = None
 
-    # Generate QR
-    img = qrcode.make(data)
+    if request.method == "POST":
+        data = request.form["data"]
 
-    # Save image
-    path = "generated_qr/my_qr.png"
-    img.save(path)
+        img = qrcode.make(data)
 
-    # Display image
-    qr_img = Image.open(path)
-    qr_img = qr_img.resize((200, 200))
+        qr_path = "static/my_qr.png"
 
-    photo = ImageTk.PhotoImage(qr_img)
+        img.save(qr_path)
 
-    qr_label.config(image=photo)
-    qr_label.image = photo
+    return render_template("index.html", qr_path=qr_path)
 
-    messagebox.showinfo("Success", "QR Code Generated!")
-
-# Main window
-root = tk.Tk()
-
-root.title("Smart QR Generator")
-
-root.geometry("400x450")
-
-title = tk.Label(root, text="QR Generator", font=("Arial", 18, "bold"))
-title.pack(pady=10)
-
-entry = tk.Entry(root, width=40)
-entry.pack(pady=10)
-
-btn = tk.Button(root, text="Generate QR", command=generate_qr)
-btn.pack(pady=10)
-
-qr_label = tk.Label(root)
-qr_label.pack(pady=20)
-
-root.mainloop()
+if __name__ == "__main__":
+    app.run(debug=True)
